@@ -1,10 +1,3 @@
-//
-//  ChopperApp.swift
-//  Chopper
-//
-//  Created by Clifford Austin on 5/23/26.
-//
-
 import SwiftUI
 
 @main
