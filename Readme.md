@@ -43,4 +43,4 @@ Contributions are welcome once Phase 1 is stable. For now, feel free to open iss
 
 ## License
 
-[MIT](./LICENSE)
+Licensed under the [Apache License, Version 2.0](./LICENSE).
