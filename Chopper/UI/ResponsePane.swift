@@ -116,63 +116,152 @@ private struct StatusBadge: View {
 
 private struct ResponseBodyView: View {
     let response: HTTPResponse
-    @State private var displayText: String = ""
+    @State private var mode: BodyMode = .pretty
+    @State private var attributedText = NSAttributedString()
+    @Environment(\.colorScheme) private var colorScheme
 
-    var body: some View {
-        ReadOnlyTextView(text: displayText)
-            .task(id: response.body) {
-                displayText = await Self.formatBody(response.body)
-            }
+    enum BodyMode: String, CaseIterable, Identifiable {
+        case pretty = "Pretty"
+        case raw = "Raw"
+        var id: String { rawValue }
     }
 
-    static func formatBody(_ body: Data) async -> String {
-        await Task.detached(priority: .userInitiated) {
-            if
-                let object = try? JSONSerialization.jsonObject(with: body, options: [.fragmentsAllowed]),
-                let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .fragmentsAllowed]),
-                let pretty = String(data: data, encoding: .utf8)
-            {
-                return pretty
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Picker("", selection: $mode) {
+                    ForEach(BodyMode.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 130)
             }
-            if let raw = String(data: body, encoding: .utf8) {
-                return raw
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+
+            AttributedTextView(text: attributedText)
+        }
+        .task(id: TaskKey(body: response.body, mode: mode, scheme: colorScheme)) {
+            let body = response.body
+            let mode = mode
+            let scheme = colorScheme
+            let isJSON = isJSON
+            let rendered = await Task.detached(priority: .userInitiated) {
+                Self.buildAttributed(body: body, mode: mode, scheme: scheme, isJSON: isJSON)
+            }.value
+            if !Task.isCancelled {
+                attributedText = rendered
             }
-            return "<binary data, \(body.count) bytes>"
-        }.value
+        }
+    }
+
+    private struct TaskKey: Hashable {
+        let body: Data
+        let mode: BodyMode
+        let scheme: ColorScheme
+    }
+
+    private var isJSON: Bool {
+        guard
+            let contentType = response.headers.first(where: { $0.key.lowercased() == "content-type" })?.value.lowercased()
+        else { return false }
+        return contentType.contains("json")
+    }
+
+    private static func buildAttributed(body: Data, mode: BodyMode, scheme: ColorScheme, isJSON: Bool) -> NSAttributedString {
+        let raw = String(data: body, encoding: .utf8)
+            ?? "<binary data, \(body.count) bytes>"
+
+        let display: String
+        switch mode {
+        case .pretty where isJSON:
+            display = prettyJSON(body) ?? raw
+        case .pretty:
+            display = raw
+        case .raw:
+            display = softWrap(raw, every: 200)
+        }
+
+        if mode == .pretty && isJSON {
+            return JSONHighlighter.highlight(display, scheme: scheme)
+        } else {
+            return plainText(display, scheme: scheme)
+        }
+    }
+
+    // TextKit wraps per-paragraph, so a multi-MB no-newline body blocks the main
+    // thread. Inject display-only newlines to split it into short paragraphs
+    private static func softWrap(_ source: String, every maxLineChars: Int) -> String {
+        guard source.count > maxLineChars else { return source }
+        var out = String()
+        out.reserveCapacity(source.utf8.count + source.utf8.count / maxLineChars)
+        var lineLen = 0
+        for ch in source {
+            out.append(ch)
+            if ch == "\n" {
+                lineLen = 0
+                continue
+            }
+            lineLen += 1
+            // Break after a structural char once the line is long enough,
+            // or hard-break if we run far past the limit.
+            if lineLen >= maxLineChars && (ch == "," || ch == "}" || ch == "]" || ch == " ") {
+                out.append("\n")
+                lineLen = 0
+            } else if lineLen >= maxLineChars * 2 {
+                out.append("\n")
+                lineLen = 0
+            }
+        }
+        return out
+    }
+
+    static func prettyJSON(_ data: Data) -> String? {
+        guard
+            let object = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]),
+            let pretty = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .fragmentsAllowed]),
+            let string = String(data: pretty, encoding: .utf8)
+        else { return nil }
+        return string
+    }
+
+    static func plainText(_ text: String, scheme: ColorScheme) -> NSAttributedString {
+        let font = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        let color: NSColor = scheme == .dark ? NSColor(white: 0.88, alpha: 1.0) : NSColor(white: 0.12, alpha: 1.0)
+        return NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: color])
     }
 }
 
-private struct ReadOnlyTextView: NSViewRepresentable {
-    let text: String
+private struct AttributedTextView: NSViewRepresentable {
+    let text: NSAttributedString
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
         scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = true
-        scrollView.autohidesScrollers = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
 
         let textView = scrollView.documentView as! NSTextView
         textView.isEditable = false
         textView.isSelectable = true
-        textView.isRichText = false
+        textView.isRichText = true
         textView.drawsBackground = true
         textView.backgroundColor = .textBackgroundColor
         textView.textContainerInset = NSSize(width: 8, height: 8)
-        textView.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
-        textView.isHorizontallyResizable = true
+        textView.isHorizontallyResizable = false
         textView.isVerticallyResizable = true
         textView.autoresizingMask = [.width]
-        textView.textContainer?.widthTracksTextView = false
-        textView.textContainer?.containerSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.textContainer?.widthTracksTextView = true
+        textView.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
+        textView.layoutManager?.allowsNonContiguousLayout = true
         return scrollView
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
-        if textView.string != text {
-            textView.string = text
-        }
+        textView.textStorage?.setAttributedString(text)
     }
 }
 
