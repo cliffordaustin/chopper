@@ -8,16 +8,20 @@ struct RequestPane: View {
     enum RequestTab: String, CaseIterable, Identifiable {
         case params = "Params"
         case headers = "Headers"
+        case body = "Body"
         var id: String { rawValue }
 
-        func badge(for request: HTTPRequest) -> Int? {
-            let pairs: [KeyValuePair]
+        func badge(for request: HTTPRequest) -> TabBadge? {
             switch self {
-            case .params: pairs = request.queryParams
-            case .headers: pairs = request.headers
+            case .params:
+                let count = request.queryParams.filter { $0.isEnabled && !$0.name.isEmpty }.count
+                return count > 0 ? .count(count) : nil
+            case .headers:
+                let count = request.headers.filter { $0.isEnabled && !$0.name.isEmpty }.count
+                return count > 0 ? .count(count) : nil
+            case .body:
+                return request.body.isEmpty ? nil : .dot
             }
-            let count = pairs.filter { $0.isEnabled && !$0.name.isEmpty }.count
-            return count > 0 ? count : nil
         }
     }
 
@@ -73,6 +77,8 @@ struct RequestPane: View {
                 KeyValueEditor(pairs: $state.request.queryParams, namePlaceholder: "Param name", valuePlaceholder: "Value")
             case .headers:
                 KeyValueEditor(pairs: $state.request.headers, namePlaceholder: "Header name", valuePlaceholder: "Value")
+            case .body:
+                BodyEditor(httpBody: $state.request.body)
             }
         }
         .padding(12)
@@ -85,9 +91,14 @@ struct RequestPane: View {
     }
 }
 
+enum TabBadge: Equatable {
+    case count(Int)
+    case dot
+}
+
 private struct TabButton: View {
     let title: String
-    let badge: Int?
+    let badge: TabBadge?
     let isSelected: Bool
     let action: () -> Void
 
@@ -95,13 +106,20 @@ private struct TabButton: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(title)
-                if let badge {
-                    Text("\(badge)")
+                switch badge {
+                case .count(let n):
+                    Text("\(n)")
                         .font(.caption2.weight(.semibold))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 1)
                         .background(Color.accentColor.opacity(0.2), in: Capsule())
                         .foregroundStyle(Color.accentColor)
+                case .dot:
+                    Circle()
+                        .fill(Color.accentColor)
+                        .frame(width: 6, height: 6)
+                case .none:
+                    EmptyView()
                 }
             }
             .font(.subheadline.weight(isSelected ? .semibold : .regular))

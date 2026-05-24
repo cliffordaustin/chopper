@@ -28,6 +28,17 @@ enum HTTPClient {
             urlRequest.setValue(header.value, forHTTPHeaderField: header.name)
         }
 
+        if !request.body.isEmpty {
+            urlRequest.httpBody = request.body.content.data(using: .utf8)
+            // Auto-set Content-Type unless the user already provided one.
+            let userSetContentType = request.headers.contains {
+                $0.isEnabled && $0.name.lowercased() == "content-type"
+            }
+            if !userSetContentType, let contentType = request.body.type.contentType {
+                urlRequest.setValue(contentType, forHTTPHeaderField: "Content-Type")
+            }
+        }
+
         let start = Date()
         let data: Data
         let urlResponse: URLResponse
