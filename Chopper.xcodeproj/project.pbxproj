@@ -6,15 +6,9 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		D1269EC22FC14678002A94B9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1269EC12FC14678002A94B9 /* ContentView.swift */; };
-		D1269ED02FC147A7002A94B9 /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = D1269ECF2FC14788002A94B9 /* Readme.md */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		D1269EBC2FC14678002A94B9 /* Chopper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chopper.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D1269EC12FC14678002A94B9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		D1269ECF2FC14788002A94B9 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Readme.md; sourceTree = "<group>"; };
+		D1269ECF2FC14788002A94B9 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,9 +34,6 @@
 			isa = PBXGroup;
 			children = (
 				D1269ECF2FC14788002A94B9 /* Readme.md */,
-				D1269ECC2FC146BF002A94B9 /* Core */,
-				D1269ECB2FC1469D002A94B9 /* Storage */,
-				D1269ECA2FC14684002A94B9 /* UI */,
 				D1269EBE2FC14678002A94B9 /* Chopper */,
 				D1269EBD2FC14678002A94B9 /* Products */,
 			);
@@ -54,28 +45,6 @@
 				D1269EBC2FC14678002A94B9 /* Chopper.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		D1269ECA2FC14684002A94B9 /* UI */ = {
-			isa = PBXGroup;
-			children = (
-				D1269EC12FC14678002A94B9 /* ContentView.swift */,
-			);
-			path = UI;
-			sourceTree = "<group>";
-		};
-		D1269ECB2FC1469D002A94B9 /* Storage */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Storage;
-			sourceTree = "<group>";
-		};
-		D1269ECC2FC146BF002A94B9 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Core;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -152,8 +121,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D1269EC22FC14678002A94B9 /* ContentView.swift in Sources */,
-				D1269ED02FC147A7002A94B9 /* Readme.md in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,6 +252,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Chopper/Chopper.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -317,6 +285,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Chopper/Chopper.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

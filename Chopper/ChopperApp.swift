@@ -6,5 +6,7 @@ struct ChopperApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 960, height: 640)
     }
 }
