@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RequestPane: View {
-    @Bindable var state: AppState
+    @Bindable var tab: Tab
     @FocusState private var urlFocused: Bool
     @State private var selectedTab: RequestTab = .params
 
@@ -28,7 +28,7 @@ struct RequestPane: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 8) {
-                Picker("", selection: $state.request.method) {
+                Picker("", selection: $tab.request.method) {
                     ForEach(HTTPMethod.allCases) { method in
                         Text(method.rawValue).tag(method)
                     }
@@ -36,14 +36,14 @@ struct RequestPane: View {
                 .labelsHidden()
                 .frame(width: 100)
 
-                TextField("https://api.example.com/endpoint", text: $state.request.url)
+                TextField("https://api.example.com/endpoint", text: $tab.request.url)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
                     .focused($urlFocused)
-                    .onSubmit { Task { await state.send() } }
+                    .onSubmit { Task { await tab.send() } }
 
-                Button(action: { Task { await state.send() } }) {
-                    if state.isLoading {
+                Button(action: { Task { await tab.send() } }) {
+                    if tab.isLoading {
                         ProgressView()
                             .controlSize(.small)
                             .frame(width: 40)
@@ -53,17 +53,17 @@ struct RequestPane: View {
                     }
                 }
                 .keyboardShortcut(.return, modifiers: .command)
-                .disabled(state.isLoading || !state.request.isSendable)
+                .disabled(tab.isLoading || !tab.request.isSendable)
             }
 
             HStack(spacing: 16) {
-                ForEach(RequestTab.allCases) { tab in
+                ForEach(RequestTab.allCases) { rt in
                     TabButton(
-                        title: tab.rawValue,
-                        badge: tab.badge(for: state.request),
-                        isSelected: tab == selectedTab
+                        title: rt.rawValue,
+                        badge: rt.badge(for: tab.request),
+                        isSelected: rt == selectedTab
                     ) {
-                        selectedTab = tab
+                        selectedTab = rt
                     }
                 }
                 Spacer()
@@ -74,19 +74,18 @@ struct RequestPane: View {
 
             switch selectedTab {
             case .params:
-                KeyValueEditor(pairs: $state.request.queryParams, namePlaceholder: "Param name", valuePlaceholder: "Value")
+                KeyValueEditor(pairs: $tab.request.queryParams, namePlaceholder: "Param name", valuePlaceholder: "Value")
             case .headers:
-                KeyValueEditor(pairs: $state.request.headers, namePlaceholder: "Header name", valuePlaceholder: "Value")
+                KeyValueEditor(pairs: $tab.request.headers, namePlaceholder: "Header name", valuePlaceholder: "Value")
             case .body:
-                BodyEditor(httpBody: $state.request.body)
+                BodyEditor(httpBody: $tab.request.body)
             }
         }
         .padding(12)
-        .onChange(of: state.request.url) { _, _ in state.syncParamsFromURL() }
-        .onChange(of: state.request.queryParams) { _, _ in
-            // Don't rewrite the URL while the user is mid-typing in it.
+        .onChange(of: tab.request.url) { _, _ in tab.syncParamsFromURL() }
+        .onChange(of: tab.request.queryParams) { _, _ in
             guard !urlFocused else { return }
-            state.syncURLFromParams()
+            tab.syncURLFromParams()
         }
     }
 }

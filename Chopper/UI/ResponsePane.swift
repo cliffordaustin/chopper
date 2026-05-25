@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct ResponsePane: View {
-    let state: AppState
+    let tab: Tab
 
     var body: some View {
         Group {
-            if let error = state.errorMessage {
+            if let error = tab.errorMessage {
                 placeholder(systemImage: "exclamationmark.triangle", title: "Request failed", subtitle: error, tint: .red)
-            } else if let response = state.response {
+            } else if let response = tab.response {
                 ResponseView(response: response)
-            } else if state.isLoading {
+            } else if tab.isLoading {
                 placeholder(systemImage: "arrow.up.arrow.down", title: "Sending…", subtitle: nil, tint: .secondary)
             } else {
                 placeholder(systemImage: "tray", title: "No response yet", subtitle: "Send a request to see the response here.", tint: .secondary)
