@@ -3,13 +3,13 @@ import Foundation
 /// A node in the workspace tree — either a folder or a request file.
 enum WorkspaceItem: Identifiable, Hashable {
     case folder(url: URL, children: [WorkspaceItem])
-    case request(url: URL)
+    case request(url: URL, method: HTTPMethod?)
 
     var id: URL { url }
 
     var url: URL {
         switch self {
-        case .folder(let url, _), .request(let url): return url
+        case .folder(let url, _), .request(let url, _): return url
         }
     }
 
@@ -17,7 +17,7 @@ enum WorkspaceItem: Identifiable, Hashable {
         switch self {
         case .folder(let url, _):
             return url.lastPathComponent
-        case .request(let url):
+        case .request(let url, _):
             return url.deletingPathExtension().deletingPathExtension().lastPathComponent
         }
     }

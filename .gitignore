@@ -71,5 +71,6 @@ fastlane/test_output
 # Logs
 *.log
 
-# For now, the plan md file would be added to gitignore
+# For now, the plan md files would be added to gitignore
 chopper-plan.md
+chopper-ui-plan.md

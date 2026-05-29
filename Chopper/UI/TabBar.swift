@@ -19,7 +19,7 @@ struct TabBar: View {
             }
         }
         .frame(height: 32)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(Theme.Colors.windowBackground)
     }
 }
 

@@ -55,7 +55,8 @@ struct Workspace: Equatable {
             if isDirectory {
                 items.append(.folder(url: url, children: scan(directory: url)))
             } else if url.lastPathComponent.hasSuffix(suffix) {
-                items.append(.request(url: url))
+                let method = (try? RequestStore.read(from: url))?.method
+                items.append(.request(url: url, method: method))
             }
         }
         return items.sorted { lhs, rhs in

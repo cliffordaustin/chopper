@@ -267,7 +267,7 @@ final class AppState {
     private static func firstRequestURL(in items: [WorkspaceItem]) -> URL? {
         for item in items {
             switch item {
-            case .request(let url):
+            case .request(let url, _):
                 return url
             case .folder(_, let children):
                 if let url = firstRequestURL(in: children) { return url }

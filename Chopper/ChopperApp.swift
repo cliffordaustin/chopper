@@ -10,8 +10,9 @@ struct ChopperApp: App {
         WindowGroup {
             ContentView(state: state)
         }
+        .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
-        .defaultSize(width: 960, height: 640)
+        .defaultSize(width: 1500, height: 950)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Request") { state.newRequest() }
