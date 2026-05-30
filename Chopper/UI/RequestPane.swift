@@ -37,10 +37,23 @@ struct RequestPane: View {
                 .frame(width: 100)
 
                 TextField("https://api.example.com/endpoint", text: $tab.request.url)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
                     .autocorrectionDisabled()
                     .focused($urlFocused)
                     .onSubmit { Task { await tab.send() } }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Theme.Colors.cardBackground)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .strokeBorder(
+                                urlFocused ? Color.accentColor : Theme.Colors.separator,
+                                lineWidth: urlFocused ? 2 : 1
+                            )
+                    )
 
                 Button(action: { Task { await tab.send() } }) {
                     if tab.isLoading {

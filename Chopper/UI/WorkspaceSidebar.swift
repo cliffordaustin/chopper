@@ -6,6 +6,8 @@ struct WorkspaceSidebar: View {
     /// Space reserved above the header so the traffic-light buttons can sit
     /// over the sidebar background without overlapping the workspace title.
     var topInset: CGFloat = 0
+    /// Collapses the sidebar (pinned) or pins it back (floating reveal).
+    var onToggleCollapse: () -> Void = {}
 
     @State private var renameTarget: URL?
     @State private var renameText: String = ""
@@ -18,7 +20,7 @@ struct WorkspaceSidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Color.clear.frame(height: topInset)
+            titleBar
             header
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 1) {
@@ -60,6 +62,25 @@ struct WorkspaceSidebar: View {
     }
 
     // MARK: - Header / footer
+
+    /// Titlebar row: hosts the collapse toggle at the trailing edge, clear of
+    /// the traffic-light buttons on the left.
+    private var titleBar: some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            Button(action: onToggleCollapse) {
+                Image(systemName: "sidebar.left")
+                    .font(.system(size: 15, weight: .medium))
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help("Hide Sidebar")
+        }
+        .padding(.horizontal, 8)
+        .frame(height: topInset)
+    }
 
     private var header: some View {
         HStack(spacing: Theme.Spacing.s) {
